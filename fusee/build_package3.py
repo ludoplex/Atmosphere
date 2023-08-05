@@ -24,13 +24,31 @@ KIP_NAMES = [b'Loader', b'NCM', b'ProcessManager', b'sm', b'boot', b'spl', b'ams
 
 def get_kips(ams_dir, build_out_dir):
     emummc   = read_file(os.path.join(ams_dir, 'emummc/emummc_unpacked.kip'))
-    loader   = read_file(os.path.join(ams_dir, 'stratosphere/loader/%s/loader.kip' % build_out_dir))
-    ncm      = read_file(os.path.join(ams_dir, 'stratosphere/ncm/%s/ncm.kip' % build_out_dir))
-    pm       = read_file(os.path.join(ams_dir, 'stratosphere/pm/%s/pm.kip' % build_out_dir))
-    sm       = read_file(os.path.join(ams_dir, 'stratosphere/sm/%s/sm.kip' % build_out_dir))
-    boot     = read_file(os.path.join(ams_dir, 'stratosphere/boot/%s/boot.kip' % build_out_dir))
-    spl      = read_file(os.path.join(ams_dir, 'stratosphere/spl/%s/spl.kip' % build_out_dir))
-    ams_mitm = read_file(os.path.join(ams_dir, 'stratosphere/ams_mitm/%s/ams_mitm.kip' % build_out_dir))
+    loader = read_file(
+        os.path.join(
+            ams_dir, f'stratosphere/loader/{build_out_dir}/loader.kip'
+        )
+    )
+    ncm = read_file(
+        os.path.join(ams_dir, f'stratosphere/ncm/{build_out_dir}/ncm.kip')
+    )
+    pm = read_file(
+        os.path.join(ams_dir, f'stratosphere/pm/{build_out_dir}/pm.kip')
+    )
+    sm = read_file(
+        os.path.join(ams_dir, f'stratosphere/sm/{build_out_dir}/sm.kip')
+    )
+    boot = read_file(
+        os.path.join(ams_dir, f'stratosphere/boot/{build_out_dir}/boot.kip')
+    )
+    spl = read_file(
+        os.path.join(ams_dir, f'stratosphere/spl/{build_out_dir}/spl.kip')
+    )
+    ams_mitm = read_file(
+        os.path.join(
+            ams_dir, f'stratosphere/ams_mitm/{build_out_dir}/ams_mitm.kip'
+        )
+    )
     return (emummc, {
         b'Loader' : loader,
         b'NCM' : ncm,
@@ -135,7 +153,9 @@ def write_kips(f, all_kips):
 
 def main(argc, argv):
     if argc != 13:
-        print('Usage: %s ams_dir build_out_dir build_boot_out_dir revision major minor micro relstep s_major s_minor s_micro s_relstep' % argv[0])
+        print(
+            f'Usage: {argv[0]} ams_dir build_out_dir build_boot_out_dir revision major minor micro relstep s_major s_minor s_micro s_relstep'
+        )
         return 1
     # Parse arguments
     ams_dir            = argv[1]
@@ -151,23 +171,46 @@ def main(argc, argv):
     s_micro            = int(argv[11])
     s_relstep          = int(argv[12])
     # Read/parse fusee
-    fusee_program = read_file(os.path.join(ams_dir, 'fusee/program/%s/program.bin' % build_boot_out_dir))
-    fusee_bin     = read_file(os.path.join(ams_dir, 'fusee/%s/fusee.bin' % build_boot_out_dir))
+    fusee_program = read_file(
+        os.path.join(
+            ams_dir, f'fusee/program/{build_boot_out_dir}/program.bin'
+        )
+    )
+    fusee_bin = read_file(
+        os.path.join(ams_dir, f'fusee/{build_boot_out_dir}/fusee.bin')
+    )
     erista_mtc = get_overlay(fusee_program, 1)
     mariko_mtc = get_overlay(fusee_program, 2)
     erista_hsh = hashlib.sha256(erista_mtc[:-4]).digest()[:4]
     mariko_hsh = hashlib.sha256(mariko_mtc[:-4]).digest()[:4]
     # Read other files
-    exosphere    = read_file(os.path.join(ams_dir, 'exosphere/%s/exosphere.bin' % build_out_dir))
-    warmboot     = read_file(os.path.join(ams_dir, 'exosphere/warmboot/%s/warmboot.bin' % build_boot_out_dir))
-    mariko_fatal = read_file(os.path.join(ams_dir, 'exosphere/mariko_fatal/%s/mariko_fatal.bin' % build_out_dir))
-    rebootstub   = read_file(os.path.join(ams_dir, 'exosphere/program/rebootstub/%s/rebootstub.bin' % build_boot_out_dir))
-    mesosphere   = read_file(os.path.join(ams_dir, 'mesosphere/%s/mesosphere.bin' % build_out_dir))
+    exosphere = read_file(
+        os.path.join(ams_dir, f'exosphere/{build_out_dir}/exosphere.bin')
+    )
+    warmboot = read_file(
+        os.path.join(
+            ams_dir, f'exosphere/warmboot/{build_boot_out_dir}/warmboot.bin'
+        )
+    )
+    mariko_fatal = read_file(
+        os.path.join(
+            ams_dir, f'exosphere/mariko_fatal/{build_out_dir}/mariko_fatal.bin'
+        )
+    )
+    rebootstub = read_file(
+        os.path.join(
+            ams_dir,
+            f'exosphere/program/rebootstub/{build_boot_out_dir}/rebootstub.bin',
+        )
+    )
+    mesosphere = read_file(
+        os.path.join(ams_dir, f'mesosphere/{build_out_dir}/mesosphere.bin')
+    )
     all_kips     = get_kips(ams_dir, build_out_dir)
     tsec_keygen  = read_file(os.path.join(ams_dir, 'fusee/program/tsec_keygen/tsec_keygen.bin'))
     splash_bin   = read_file(os.path.join(ams_dir, 'img/splash.bin'))
     assert len(splash_bin) == 0x3C0000
-    with open(os.path.join(ams_dir, 'fusee/%s/package3' % build_boot_out_dir), 'wb') as f:
+    with open(os.path.join(ams_dir, f'fusee/{build_boot_out_dir}/package3'), 'wb') as f:
         # Write header
         write_header(f, all_kips, len(warmboot), len(tsec_keygen), len(mariko_fatal), len(exosphere), len(mesosphere), len(fusee_bin), len(rebootstub), revision, major, minor, micro, relstep, s_major, s_minor, s_micro, s_relstep)
         # Write warmboot

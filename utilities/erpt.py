@@ -290,17 +290,16 @@ def get_full(nxo):
                     #print(hex(s.resolved), s.name)
                     #idaapi.add_entry(s.resolved, s.resolved, s.name, 0)
                     pass
-                else:
-                    #idaapi.force_name(s.resolved, s.name)
-                    pass
         else:
             # NULL symbol
             s.resolved = 0
 
     def put_dword(z, target, val):
         return z[:target] + pk('<I', val) + z[target+4:]
+
     def put_qword(z, target, val):
         return z[:target] + pk('<Q', val) + z[target+8:]
+
     def get_dword(z, target):
         return up('<I', z[target:target+4])[0]
 
@@ -341,12 +340,7 @@ def read_string(full, ofs):
 
 def is_valid_field_name(s):
     ALLOWED = string.lowercase + string.uppercase + string.digits + '_'
-    if not s:
-        return False
-    for c in s:
-        if not c in ALLOWED:
-            return False
-    return True
+    return False if not s else all(c in ALLOWED for c in s)
 
 def parse_fields(full, table):
     fields = []

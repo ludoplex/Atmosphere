@@ -11,7 +11,9 @@ def align_up(val, algn):
 
 def main(argc, argv):
     if argc < 4:
-        print('Usage: %s kernel_ldr.bin kernel.bin output.bin [initial_process.kip ...]' % argv[0])
+        print(
+            f'Usage: {argv[0]} kernel_ldr.bin kernel.bin output.bin [initial_process.kip ...]'
+        )
         return 1
     with open(argv[1], 'rb') as f:
         kernel_ldr = f.read()

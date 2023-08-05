@@ -24,13 +24,13 @@ def split_binary(data):
 
 def main(argc, argv):
     if argc != 3:
-        print('Usage: %s in outdir' % argv[0])
+        print(f'Usage: {argv[0]} in outdir')
         return 1
     with open(argv[1], 'rb') as f:
         data = f.read()
     assert len(data) >= 0x40
     for (fn, fdata) in split_binary(data):
-        with open('%s/%s' % (argv[2], fn), 'wb') as f:
+        with open(f'{argv[2]}/{fn}', 'wb') as f:
             f.write(fdata)
     return 0
 

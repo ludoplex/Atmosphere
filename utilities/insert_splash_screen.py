@@ -26,7 +26,7 @@ def convert_image(image_fn):
 
 def main(argc, argv):
     if argc != 3:
-        print('Usage: %s image package3' % argv[0])
+        print(f'Usage: {argv[0]} image package3')
         return 1
     with open(argv[2], 'rb') as f:
         package3 = f.read()
