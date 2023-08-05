@@ -53,7 +53,7 @@ def kip1_blz_decompress(compressed):
     while outindex > 0:
         index -= 1
         control = compressed[index]
-        for i in iter_range(8):
+        for _ in iter_range(8):
             if control & 0x80:
                 if index < 2:
                     raise ValueError('Compression out of bounds!')
@@ -64,7 +64,7 @@ def kip1_blz_decompress(compressed):
                 segmentoffset += 2
                 if outindex < segmentsize:
                     raise ValueError('Compression out of bounds!')
-                for j in iter_range(segmentsize):
+                for _ in iter_range(segmentsize):
                     if outindex + segmentoffset >= decompressed_size:
                         raise ValueError('Compression out of bounds!')
                     data = decompressed[outindex+segmentoffset]
@@ -88,18 +88,15 @@ class BinFile(object):
 
     def read(self, arg):
         if isinstance(arg, str):
-            fmt = '<' + arg
+            fmt = f'<{arg}'
             size = struct.calcsize(fmt)
             raw = self._f.read(size)
             out = struct.unpack(fmt, raw)
-            if len(out) == 1:
-                return out[0]
-            return out
+            return out[0] if len(out) == 1 else out
         elif arg is None:
             return self._f.read()
         else:
-            out = self._f.read(arg)
-            return out
+            return self._f.read(arg)
 
     def read_from(self, arg, offset):
         old = self.tell()
@@ -153,7 +150,7 @@ R_AARCH64_JUMP_SLOT = 1026
 R_AARCH64_RELATIVE = 1027
 R_AARCH64_TLSDESC = 1031
 
-MULTIPLE_DTS = set([DT_NEEDED])
+MULTIPLE_DTS = {DT_NEEDED}
 
 
 class Range(object):
@@ -196,9 +193,7 @@ class Section(object):
 
 
 def suffixed_name(name, suffix):
-    if suffix == 0:
-        return name
-    return '%s.%d' % (name, suffix)
+    return name if suffix == 0 else '%s.%d' % (name, suffix)
 
 
 class SegmentBuilder(object):
@@ -333,7 +328,7 @@ class NxoFileBase(object):
         self.dynamic = dynamic = {}
         for i in MULTIPLE_DTS:
             dynamic[i] = []
-        for i in iter_range((flatsize - self.dynamicoff) // 0x10):
+        for _ in iter_range((flatsize - self.dynamicoff) // 0x10):
             tag, val = f.read('II' if self.armv7 else 'QQ')
             if tag == DT_NULL:
                 break
@@ -421,9 +416,8 @@ class NxoFileBase(object):
                             self.plt_entries.append((off, target))
                 builder.add_section('.plt', min(self.plt_entries)[0], end=max(self.plt_entries)[0] + 0x10)
 
-            # try to find the ".got" which should follow the ".got.plt"
-            if not self.isLibnx:
-                if plt_got_end is not None:
+            if plt_got_end is not None:
+                if not self.isLibnx:
                     good = False
                     got_end = plt_got_end + self.offsize
                     while got_end in locations and (DT_INIT_ARRAY not in dynamic or got_end < dynamic[DT_INIT_ARRAY]):
@@ -436,15 +430,17 @@ class NxoFileBase(object):
             builder.add_section('.got', self.libnx_got_start, end=self.libnx_got_end)
 
         self.sections = []
-        for start, end, name, kind in builder.flatten():
-            self.sections.append((start, end, name, kind))
+        self.sections.extend(
+            (start, end, name, kind)
+            for start, end, name, kind in builder.flatten()
+        )
 
 
     def process_relocations(self, f, symbols, offset, size):
         locations = set()
         f.seek(offset)
         relocsize = 8 if self.armv7 else 0x18
-        for i in iter_range(size // relocsize):
+        for _ in iter_range(size // relocsize):
             # NOTE: currently assumes all armv7 relocs have no addends,
             # and all 64-bit ones do.
             if self.armv7:
@@ -459,7 +455,7 @@ class NxoFileBase(object):
 
             sym = symbols[r_sym] if r_sym != 0 else None
 
-            if r_type != R_AARCH64_TLSDESC and r_type != R_ARM_TLS_DESC:
+            if r_type not in [R_AARCH64_TLSDESC, R_ARM_TLS_DESC]:
                 locations.add(offset)
             self.relocations.append((offset, r_type, sym, addend))
         return locations

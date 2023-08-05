@@ -18,7 +18,7 @@ def get_overlay(program, i):
 
 def main(argc, argv):
     if argc != 3:
-        print('Usage: %s in out' % argv[0])
+        print(f'Usage: {argv[0]} in out')
         return 1
     data = read_file(argv[1])
     erista_mtc = get_overlay(data, 1)

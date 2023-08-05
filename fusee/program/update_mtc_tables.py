@@ -25,7 +25,7 @@ def get_param_size(soc):
 
 def main(argc, argv):
     if argc != 1:
-        print('Usage: %s' % argv[0])
+        print(f'Usage: {argv[0]}')
         return 1
     params = {
         'erista' : {},
@@ -43,22 +43,24 @@ def main(argc, argv):
             assert board.startswith('T210Sdev')
             soc = 'erista'
             count = 10
-        assert os.listdir('mtc_tables/bin/%s' % board) == ['%d.bin' % i for i in xrange(count)]
+        assert os.listdir(f'mtc_tables/bin/{board}') == [
+            '%d.bin' % i for i in xrange(count)
+        ]
         params[soc][board] = []
         compressed_params[soc][board] = []
         for i in xrange(count):
-            uncompressed = read_file(os.path.join('mtc_tables/bin/%s' % board, '%d.bin' % i))
+            uncompressed = read_file(os.path.join(f'mtc_tables/bin/{board}', '%d.bin' % i))
             assert len(uncompressed) == get_param_size(soc)
             compressed = lz4_compress(uncompressed)
             params[soc][board].append(uncompressed)
             compressed_params[soc][board].append(compressed)
             try:
-                os.makedirs('mtc_tables/lz/%s' % board)
+                os.makedirs(f'mtc_tables/lz/{board}')
             except:
                 pass
-            write_file(os.path.join('mtc_tables/lz/%s' % board, '%d.lz4' % i), compressed)
+            write_file(os.path.join(f'mtc_tables/lz/{board}', '%d.lz4' % i), compressed)
     for soc in ('erista', 'mariko'):
-        with open('source/mtc/fusee_mtc_tables_%s.inc' % soc, 'w') as f:
+        with open(f'source/mtc/fusee_mtc_tables_{soc}.inc', 'w') as f:
             f.write('%s\n' % "/*")
             f.write('%s\n' % " * Copyright (c) Atmosph\xc3\xa8re-NX")
             f.write('%s\n' % " *")
